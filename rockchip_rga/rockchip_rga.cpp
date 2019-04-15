@@ -30,7 +30,7 @@
 #include <time.h>
 
 #include "rockchip_rga.h"
-#include "log.h"
+//#include "log.h"
 #include "rga_priv.h"
 
 #define SYS_PATH		"/sys/class/video4linux/"

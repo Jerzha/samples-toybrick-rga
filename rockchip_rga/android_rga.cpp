@@ -34,7 +34,7 @@
 #include <linux/videodev2.h>
 
 #include "rockchip_rga.h"
-#include "log.h"
+//#include "log.h"
 #include "rga_priv.h"
 #include "android_rga.h"
 
@@ -453,14 +453,14 @@ static inline void Soft_NV16ToYUYV(unsigned char *src, unsigned char *dst, __u32
 int AndroidRgaProcess(RockchipRga *rga, RgaBuffer *srcBuf, RgaBuffer *dstBuf) {
     struct rga_req req;
     int ret;
-    unsigned long long t1, t2, t3;
+    //unsigned long long t1, t2, t3;
 
     if (rga->ctx.srcFormat == V4L2_PIX_FMT_YUYV) {
         assert(rga->ctx.srcWidth * rga->ctx.srcHeight * 2 <= MAX_YUV_SIZE);
         rga->buf.size = rga->ctx.srcWidth * rga->ctx.srcHeight * 2;
-        t1 = nanoTime();
+        //t1 = nanoTime();
         Soft_YUYVToNV16(srcBuf->ptr, rga->buf.ptr, rga->ctx.srcWidth, rga->ctx.srcHeight);
-        t2 = nanoTime();
+        //t2 = nanoTime();
         rga_debug(rga, "Software yuyv to nv16 time: %llums\n", (t2 - t1) / 1000000);
 
         rga->ctx.srcFormat = V4L2_PIX_FMT_NV16;
@@ -475,9 +475,9 @@ int AndroidRgaProcess(RockchipRga *rga, RgaBuffer *srcBuf, RgaBuffer *dstBuf) {
         ret = AndroidRgaSetReq(rga, srcBuf, &rga->buf, &req);
         if (ret < 0)
             return ret;
-        t1 = nanoTime();
+        //t1 = nanoTime();
         Soft_NV16ToYUYV(rga->buf.ptr, dstBuf->ptr, rga->ctx.dstWidth, rga->ctx.dstHeight);
-        t2 = nanoTime();
+        //t2 = nanoTime();
         rga_debug(rga, "Software nv16 to yuyv time: %llums\n", (t2 - t1) / 1000000);
 
     } else {

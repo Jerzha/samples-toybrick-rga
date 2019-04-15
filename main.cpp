@@ -14,8 +14,8 @@
 #define BUFFER_HEIGHT 2160
 #define BUFFER_SIZE BUFFER_WIDTH*BUFFER_HEIGHT*4
 
-unsigned char srcBuffer[BUFFER_SIZE] = {0};
-unsigned char dstBuffer[BUFFER_SIZE] = {0};
+unsigned char *srcBuffer;
+unsigned char *dstBuffer;
 
 #define NANOTIME_PER_MSECOND 1000000L
 static unsigned long long nanoTime(void) {
@@ -28,23 +28,23 @@ static unsigned long long nanoTime(void) {
 }
 
 void randomData() {
-    srand((unsigned)time(nullptr));
-    for (unsigned char &i : srcBuffer) {
-        i = (unsigned char)rand();
+    srand((unsigned)time(0));
+    for (int i = 0; i < BUFFER_SIZE; ++i) {
+        srcBuffer[i] = (unsigned char)rand();
     }
 }
 
 bool checkData() {
     for (int i = 0; i < BUFFER_SIZE; ++i) {
         if (srcBuffer[i] != dstBuffer[i]) {
-            return false;
+            printf("[%d] src=%u, dst=%u\n", i, srcBuffer[i], dstBuffer[i]);
         }
     }
     return true;
 }
 
 void rga_copy() {
-    RockchipRga *mRga;
+    RockchipRga *mRga = RgaCreate();
     if (!mRga) {
         printf("create rga failed !\n");
         abort();
@@ -61,31 +61,26 @@ void rga_copy() {
 }
 
 int main() {
+    srcBuffer = new unsigned char[BUFFER_SIZE];
+    dstBuffer = new unsigned char[BUFFER_SIZE];
+
     randomData();
-    if (checkData()) {
-        printf("WTF ...\n");
-        return -1;
-    }
 
     long long begintime = nanoTime();
     rga_copy();
     long long endtime = nanoTime() - begintime;
-    printf("RGA copy time : %lld\n", endtime/NANOTIME_PER_MSECOND);
+    printf("RGA copy time : %lld ms\n", endtime/NANOTIME_PER_MSECOND);
 
-    if (!checkData()) {
-        printf("RGA copy buffer error !");
-        return -1;
-    }
+    checkData();
 
     begintime = nanoTime();
     memcpy(dstBuffer, srcBuffer, BUFFER_SIZE);
     endtime = nanoTime() - begintime;
-    printf("Memcpy copy time : %lld\n", endtime/NANOTIME_PER_MSECOND);
+    printf("Memcpy copy time : %lld ms\n", endtime/NANOTIME_PER_MSECOND);
 
-    if (!checkData()) {
-        printf("Memcpy copy buffer error !");
-        return -1;
-    }
+    checkData();
 
+    delete []srcBuffer;
+    delete []dstBuffer;
     return 0;
 }

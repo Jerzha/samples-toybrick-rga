@@ -18,13 +18,14 @@
 #define __ROCKCHIP_RGA_H__
 
 #include <stdint.h>
+#include <cstddef>
 #include <linux/videodev2.h>
-#include "log.h"
+//#include "log.h"
 
 #define RGA_ALIGN(x, a)         (((x) + (a) - 1) / (a) * (a))
 #define rga_debug(_RGA_, fmt, args...) //LOGD(fmt, ##args)
-#define rga_err(_RGA_, fmt, args...) LOGE(fmt, ##args)
-#define rga_warn(_RGA_, fmt, args...) LOGW(fmt, ##args)
+#define rga_err(_RGA_, fmt, args...) printf(fmt, ##args)
+#define rga_warn(_RGA_, fmt, args...) printf(fmt, ##args)
 
 typedef enum _RgaRotate {
     RGA_ROTATE_NONE = 0,
