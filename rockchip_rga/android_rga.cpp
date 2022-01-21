@@ -68,16 +68,20 @@ V4l2ToRgaFormat(__u32 v4l2Format, __u32 yuvToRgbMode) {
     case V4L2_PIX_FMT_ABGR32:
         return RK_FORMAT_BGRA_8888;
     case V4L2_PIX_FMT_RGB565:
-        return RK_FORMAT_RGB_565;
-    case V4L2_PIX_FMT_NV12:
-        return RK_FORMAT_YCrCb_420_SP;  // Todo: why is Ycrcb NOT Ycbcr
+		return RK_FORMAT_RGB_565;
+	case V4L2_PIX_FMT_NV12:
+		return RK_FORMAT_YCbCr_420_SP;  // Todo: why is Ycrcb NOT Ycbcr
+	case V4L2_PIX_FMT_NV21:
+		return RK_FORMAT_YCrCb_420_SP;  // Todo: why is Ycrcb NOT Ycbcr
     case V4L2_PIX_FMT_YUV420:
     if(yuvToRgbMode == RGB_TO_YUV)
         return RK_FORMAT_YCbCr_420_P;
     else
-            return RK_FORMAT_YCrCb_420_P; // Todo: why is RK_FORMAT_YCrCb_420_P, not RK_FORMAT_YCbCr_420_P ?
+        return RK_FORMAT_YCrCb_420_P; // Todo: why is RK_FORMAT_YCrCb_420_P, not RK_FORMAT_YCbCr_420_P ?
     case V4L2_PIX_FMT_NV16:
         return RK_FORMAT_YCrCb_422_SP;
+	case V4L2_PIX_FMT_YUYV:
+		return RK_FORMAT_YUYV_422;
 
     default:
         return RK_FORMAT_UNKNOWN;
@@ -182,8 +186,9 @@ BytesPerPixel(__u32 v4l2Format)
 static int
 IsYuvFormat(__u32 v4l2Format)
 {
-    switch(v4l2Format) {
-    case V4L2_PIX_FMT_NV12:
+	switch(v4l2Format) {
+	case V4L2_PIX_FMT_NV12:
+	case V4L2_PIX_FMT_NV21:
     case V4L2_PIX_FMT_NV16:
     case V4L2_PIX_FMT_YUV420:
     case V4L2_PIX_FMT_YUYV:
@@ -248,7 +253,7 @@ AndroidRgaSetReq(RockchipRga *rga, RgaBuffer *srcBuf, RgaBuffer *dstBuf, struct 
         scaleMode = 2;
         if(srcRect.f == V4L2_PIX_FMT_ABGR32 ||
             srcRect.f == V4L2_PIX_FMT_ARGB32) {
-            rga_warn(rga, "Format %u: scale is not support, set scaleMode zero\n");
+            rga_warn(rga, "Format %u: scale is not support, set scaleMode zero\n", srcRect.f);
             scaleMode = 0;
         }
     }
@@ -455,36 +460,36 @@ int AndroidRgaProcess(RockchipRga *rga, RgaBuffer *srcBuf, RgaBuffer *dstBuf) {
     int ret;
     //unsigned long long t1, t2, t3;
 
-    if (rga->ctx.srcFormat == V4L2_PIX_FMT_YUYV) {
-        assert(rga->ctx.srcWidth * rga->ctx.srcHeight * 2 <= MAX_YUV_SIZE);
-        rga->buf.size = rga->ctx.srcWidth * rga->ctx.srcHeight * 2;
-        //t1 = nanoTime();
-        Soft_YUYVToNV16(srcBuf->ptr, rga->buf.ptr, rga->ctx.srcWidth, rga->ctx.srcHeight);
-        //t2 = nanoTime();
-        rga_debug(rga, "Software yuyv to nv16 time: %llums\n", (t2 - t1) / 1000000);
+    //if (rga->ctx.srcFormat == V4L2_PIX_FMT_YUYV) {
+    //    assert(rga->ctx.srcWidth * rga->ctx.srcHeight * 2 <= MAX_YUV_SIZE);
+    //    rga->buf.size = rga->ctx.srcWidth * rga->ctx.srcHeight * 2;
+    //    //t1 = nanoTime();
+    //    Soft_YUYVToNV16(srcBuf->ptr, rga->buf.ptr, rga->ctx.srcWidth, rga->ctx.srcHeight);
+    //    //t2 = nanoTime();
+    //    rga_debug(rga, "Software yuyv to nv16 time: %llums\n", (t2 - t1) / 1000000);
 
-        rga->ctx.srcFormat = V4L2_PIX_FMT_NV16;
-        ret = AndroidRgaSetReq(rga, &rga->buf, dstBuf, &req);
-        if (ret < 0)
-            return ret;
-    } else if (rga->ctx.dstFormat == V4L2_PIX_FMT_YUYV) {
-        assert(rga->ctx.dstWidth * rga->ctx.dstHeight <= MAX_YUV_SIZE);
-        rga->buf.size = rga->ctx.srcWidth * rga->ctx.srcHeight;
+    //    rga->ctx.srcFormat = V4L2_PIX_FMT_NV16;
+    //    ret = AndroidRgaSetReq(rga, &rga->buf, dstBuf, &req);
+    //    if (ret < 0)
+    //        return ret;
+    //} else if (rga->ctx.dstFormat == V4L2_PIX_FMT_YUYV) {
+    //    assert(rga->ctx.dstWidth * rga->ctx.dstHeight <= MAX_YUV_SIZE);
+    //    rga->buf.size = rga->ctx.srcWidth * rga->ctx.srcHeight;
 
-        rga->ctx.dstFormat = V4L2_PIX_FMT_NV16;
-        ret = AndroidRgaSetReq(rga, srcBuf, &rga->buf, &req);
-        if (ret < 0)
-            return ret;
-        //t1 = nanoTime();
-        Soft_NV16ToYUYV(rga->buf.ptr, dstBuf->ptr, rga->ctx.dstWidth, rga->ctx.dstHeight);
-        //t2 = nanoTime();
-        rga_debug(rga, "Software nv16 to yuyv time: %llums\n", (t2 - t1) / 1000000);
+    //    rga->ctx.dstFormat = V4L2_PIX_FMT_NV16;
+    //    ret = AndroidRgaSetReq(rga, srcBuf, &rga->buf, &req);
+    //    if (ret < 0)
+    //        return ret;
+    //    //t1 = nanoTime();
+    //    Soft_NV16ToYUYV(rga->buf.ptr, dstBuf->ptr, rga->ctx.dstWidth, rga->ctx.dstHeight);
+    //    //t2 = nanoTime();
+    //    rga_debug(rga, "Software nv16 to yuyv time: %llums\n", (t2 - t1) / 1000000);
 
-    } else {
+    //} else {
         ret = AndroidRgaSetReq(rga, srcBuf, dstBuf, &req);
         if (ret < 0)
-            return ret;
-    }
+			return ret;/*
+					   }*/
 
     AndroidRgaPrintReq(rga, &req);
     ret = ioctl(rga->rgaFd, RGA_BLIT_SYNC, &req);

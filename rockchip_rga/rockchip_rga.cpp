@@ -50,8 +50,9 @@ enum drm_rockchip_gem_mem_type {
 static size_t
 RockchipRgaGetSize(__u32 v4l2Format, __u32 width, __u32 height)
 {
-    switch(v4l2Format) {
-    case V4L2_PIX_FMT_NV12: // YUV420SP
+	switch(v4l2Format) {
+	case V4L2_PIX_FMT_NV12: // YUV420SP
+	case V4L2_PIX_FMT_NV21: // YUV420SP
     case V4L2_PIX_FMT_YUV420:
         return RGA_ALIGN(width, 16) * RGA_ALIGN(height, 16) * 3 / 2;
     case V4L2_PIX_FMT_RGB565:
