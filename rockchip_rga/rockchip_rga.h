@@ -52,8 +52,9 @@ RockchipRgaCheckFormat(__u32 v4l2Foramt)
     case V4L2_PIX_FMT_RGB24:
     case V4L2_PIX_FMT_BGR24:
     case V4L2_PIX_FMT_ABGR32:
-    case V4L2_PIX_FMT_RGB565:
-    case V4L2_PIX_FMT_NV12:
+	case V4L2_PIX_FMT_RGB565:
+	case V4L2_PIX_FMT_NV12:
+	case V4L2_PIX_FMT_NV21:
     case V4L2_PIX_FMT_YUV420:
     case V4L2_PIX_FMT_NV16:
     case V4L2_PIX_FMT_YUYV:
